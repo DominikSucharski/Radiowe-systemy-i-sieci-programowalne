@@ -1,16 +1,19 @@
 <?php
 require_once 'db.php';
 require_once 'view.php';
+require_once 'calculations.php';
 
 class MainController
 {
     protected $db;
     protected $view;
+    protected $calculations;
 
     public function __construct()
     {
         $this->db = new DB();
         $this->view = new View();
+        $this->calculations = new Calculations();
     }
 
     public function StartAction($action)
@@ -27,58 +30,44 @@ class MainController
 
     protected function actionMain()
     {
-        echo '<p>Strona główna - do zrobienia przez grupę interfejsu graficznego (PHP + HTML + CSS)</p>';
-        echo '<p><a href="?action=ViewBsList">Lista BS</a></p>';
-        echo '<p><a href="?action=ViewObliczenia1">Przykładowa akcja - formularz obliczenia1</a> - przycisk / link (grupa interfejsu)</p>';
+        $this->view->MainView();
     }
 
     protected function actionViewBsList()
     {
-        echo 'Dodaj BS:';
-        echo '<form action="?action=AddBs" method="POST">';
-        echo 'Moc nadajnika: <input type="text" name="power" /> dBm<br>';
-        echo 'Współrzędna x: <input type="text" name="coord_x" /><br>';
-        echo 'Współrzędna y: <input type="text" name="coord_y" /><br>';
-        echo '<input type="submit" value="Dodaj BS" /></form></p>';
         $result = $this->db->GetBsList();
-        if ($result) {
-            echo '<h3>Lista BS</h3>';
-            echo '<table style="border-style: dashed;"><thead><tr><th>id</th><th>PTX</th><th>coords x</th><th>coords y</th></tr></thead><tbody>';
-            while ( $bs = mysqli_fetch_assoc ( $result ) ) {
-                echo '<tr><td style="padding: 0px 10px;">' . $bs['bs_id'] . '</td><td style="padding: 0px 10px;">' . $bs['bs_ptx'] . ' dBm</td><td style="padding: 0px 10px;">' . $bs['bs_coords_x'] . '</td><td>' . $bs['bs_coords_y'] . '</td></tr>';
-            }
-            echo '</tbody></table>';
-        } else {
-            echo 'Brak BS';
-        }
+        $this->view->DisplayBsList($result);
     }
 
-    protected function actionAddBs() {
-        if(!empty($_POST['power']) && !empty($_POST['coord_x']) && !empty($_POST['coord_y'])) {
+    protected function actionAddBs()
+    {
+        if (!empty($_POST['power']) && !empty($_POST['coord_x']) && !empty($_POST['coord_y'])) {
             $power = floatval($_POST['power']);
             $coord_x = intval($_POST['coord_x']);
             $coord_y = intval($_POST['coord_y']);
-            $this->db->AddBs($power, $coord_x, $coord_y);
+            $frequency = floatval($_POST['frequency']);
+            $this->db->AddBs($power, $coord_x, $coord_y, $frequency);
             unset($_POST);
         }
         $this->actionViewBsList();
     }
 
-    protected function actionViewObliczenia1()
+    protected function actionViewFreeSpaceLoss()
     {
-        echo '<h1>Przykładowe obliczenia</h1>';
-        echo '<form action="?action=obliczenia1" method="POST">';
-        echo '<p>Moc nadajnika: <input type="text" name="power" /></p>';
-        echo '<p>Parametr z bazy danych: <input type="text" name="parametr1" /></p>';
-        echo '<input type="submit" value="Oblicz" /></form></p>';
+        $this->view->DisplayFreeSpaceLossForm();
     }
 
-    protected function actionObliczenia1()
+    protected function actionFreeSpaceLoss()
     {
         echo '<h1>Przykładowe obliczenia</h1>';
-        echo 'Uruchomienie funkcji obliczenia1 napisanej przez grupę obliczeń, przekazanie danych z interfejsu i bazy danych<br>';
-        echo 'Parametry obliczeń z interfejsu<br>';
-        echo 'Moc nadajnika: ' . ($_POST['power'] ?? 'nie podano');
-        echo '<br>Wynik obliczeń: ???';
+        echo 'Uruchomienie funkcji free_space_loss napisanej przez grupę obliczeń<br>';
+        echo 'Parametry obliczeń z interfejsu:<br>';
+        $distance = $_POST['distance'] ?? 0;
+        $distance = floatval($distance);
+        $frequency = $_POST['frequency'] ?? 0;
+        $frequency = floatval($frequency);
+        echo 'Odległość: ' . $distance . ' m<br>';
+        echo 'Częstotliwość: ' . $frequency . ' Hz<br>';
+        echo '<br>Tłumienie: ' . $this->calculations->free_space_loss($distance, $frequency) . ' dB';
     }
 }
