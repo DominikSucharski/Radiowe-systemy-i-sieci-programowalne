@@ -1,3 +1,4 @@
+Autor: Dominik Sucharski
 # Radiowe systemy i sieci programowalne - projekt
 1. Elementy składowe systemu:
    1. Baza danych

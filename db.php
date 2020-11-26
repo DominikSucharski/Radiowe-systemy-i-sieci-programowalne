@@ -17,14 +17,19 @@ class DB
         return $this->instance;
     }
 
-    public function GetBsList()
+    public function GetUserList()
     {
-        return $this->instance->query("SELECT * FROM bs_list");
+        return $this->instance->query("SELECT * FROM users");
     }
 
-    public function AddBs($power, $coord_x, $coord_y, $frequency)
+    public function GetUsersForCalculation() {
+        return $this->instance->query("SELECT user_coords_x coord_x, user_coords_y coord_y, user_channel channel, user_ptx power, user_points points FROM users");
+    }
+
+    public function AddOrUpdateUser($power, $coord_x, $coord_y, $channel, $points)
     {
-        $sql = "INSERT INTO bs_list (bs_ptx, bs_coords_x, bs_coords_y, bs_frequency) VALUES ({$power}, {$coord_x}, {$coord_y}, {$frequency})";
+        // TODO: select by $coord_x, $coord_y, $channel; update $power, $points if exist
+        $sql = "INSERT INTO users (user_ptx, user_coords_x, user_coords_y, user_channel, user_points) VALUES ({$power}, {$coord_x}, {$coord_y}, {$channel}, '{$points}')";
         $this->instance->query($sql);
     }
 }
