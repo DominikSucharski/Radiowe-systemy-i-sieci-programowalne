@@ -45,7 +45,7 @@ class MainController
 
     protected function actionAddUser()
     {
-        header('Content-type: application/json');     
+        header('Content-type: application/json');
         if (!empty($_POST['power']) && !empty($_POST['coord_x']) && !empty($_POST['coord_y'])) {
             $power = floatval($_POST['power']);
             $coordX = intval($_POST['coord_x']);
@@ -53,7 +53,7 @@ class MainController
             $channel = floatval($_POST['channel']);
             $users = [];
             $usersFromDb = $this->db->GetUsersForCalculation();
-            while($row = $usersFromDb->fetch_array(MYSQLI_ASSOC)) {
+            while ($row = $usersFromDb->fetch_array(MYSQLI_ASSOC)) {
                 $row['coord_x'] = floatval($row['coord_x']);
                 $row['coord_y'] = floatval($row['coord_y']);
                 $row['power'] = intval($row['power']);
@@ -62,20 +62,17 @@ class MainController
             }
             $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users);
             // var_dump($pythonResult);  // TODO: delete after tests
-            if($pythonResult === false) {
+            if ($pythonResult === false) {
                 $this->jsonResponse['response'] = 'Błąd podczas wykonywania obliczeń';
-            }
-            else if($pythonResult == 'false') {
+            } else if ($pythonResult == 'no_access') {
                 $this->jsonResponse['response'] = 'Brak dostępu dla użytkownika';
-            }
-            else {
+            } else {
                 $this->jsonResponse['response'] = $pythonResult;
                 $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
                 $this->db->AddOrUpdateUser($power, $coordX, $coordY, $channel, $pythonResult);
-            } 
+            }
             // unset($_POST);
-        }
-        else {
+        } else {
             $this->jsonResponse['response'] = 'Podaj wszystkie parametry';
         }
         echo json_encode($this->jsonResponse);
@@ -104,7 +101,7 @@ class MainController
     {
         $url = 'https://europe-west1-my-project-1567770564898.cloudfunctions.net/calculations';
         $pythonRequest = array("coord_x" => $coordX, "coord_y" => $coordY, "power" => $power, "channel" => $channel, "users" => $users);
-        $pythonRequest = json_encode($pythonRequest, true);  
+        $pythonRequest = json_encode($pythonRequest, true);
         $this->jsonResponse['request'] = $pythonRequest;
         $options = array(
             'http' => array(
@@ -117,8 +114,8 @@ class MainController
         return file_get_contents($url, false, $context);
     }
 
-
-    protected function actionClearDb() {
+    protected function actionClearDb()
+    {
         $this->db->GetInstance()->query("TRUNCATE TABLE users");
     }
 }
