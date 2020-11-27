@@ -62,25 +62,29 @@ class MainController
             $coordX = intval($_REQUEST['coord_x']);
             $coordY = intval($_REQUEST['coord_y']);
             $channel = floatval($_REQUEST['channel']);
-            // $existingUser = $this->db->FindUserByParams($coordX, $coordY, $channel);
-            $users = [];
-            $usersFromDb = $this->db->GetUsersForCalculation();
-            while ($row = $usersFromDb->fetch_array(MYSQLI_ASSOC)) {
-                $row['coord_x'] = floatval($row['coord_x']);
-                $row['coord_y'] = floatval($row['coord_y']);
-                $row['power'] = intval($row['power']);
-                $row['channel'] = intval($row['channel']);
-                $users[] = $row;
-            }
-            $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users);
-            if ($pythonResult === false) {
-                $this->jsonResponse['response'] = 'python_error';
-            } else if ($pythonResult == 'no_access') {
-                $this->jsonResponse['response'] = 'no_access';
+            $existingUser = $this->db->FindUserByParams($coordX, $coordY, $channel);
+            if ($existingUser) {
+                $this->jsonResponse['response'] = 'user_exist';
             } else {
-                $this->jsonResponse['response'] = $pythonResult;
-                $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
-                $this->db->AddUser($power, $coordX, $coordY, $channel, $pythonResult);
+                $users = [];
+                $usersFromDb = $this->db->GetUsersForCalculation();
+                while ($row = $usersFromDb->fetch_array(MYSQLI_ASSOC)) {
+                    $row['coord_x'] = floatval($row['coord_x']);
+                    $row['coord_y'] = floatval($row['coord_y']);
+                    $row['power'] = intval($row['power']);
+                    $row['channel'] = intval($row['channel']);
+                    $users[] = $row;
+                }
+                $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users);
+                if ($pythonResult === false) {
+                    $this->jsonResponse['response'] = 'python_error';
+                } else if ($pythonResult == 'no_access') {
+                    $this->jsonResponse['response'] = 'no_access';
+                } else {
+                    $this->jsonResponse['response'] = $pythonResult;
+                    $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
+                    $this->db->AddUser($power, $coordX, $coordY, $channel, $pythonResult);
+                }
             }
             $_POST = array();
             $_REQUEST = array();
@@ -95,10 +99,9 @@ class MainController
         $uid = empty($_REQUEST['id']) ? 0 : intval($_REQUEST['id']);
         if ($uid != 0) {
             echo $this->db->DeleteUser($uid);
-        }
-        else {
+        } else {
             echo 'incorrect_id';
-        }     
+        }
     }
 
     protected function callExternalPythonScript($coordX, $coordY, $power, $channel, $users = [])
