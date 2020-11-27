@@ -2,17 +2,10 @@
 
 class View
 {
-    public function DisplayHeader()
-    {
-        echo '<h3><a href="index.php">Strona główna</a></h3>';
-    }
-
     public function MainView()
     {
-        echo '<p>Strona główna - do zrobienia przez grupę interfejsu graficznego (PHP + HTML + CSS)</p>';
-        echo '<p><a href="?action=ViewUserList">Lista użytkowników</a></p>';
-        echo '<p><a href="?action=ViewFreeSpaceLoss">Tłumienie w wolnej przestrzeni</a></p>';
-        echo '<p><a href="?action=ClearDb">Wyczyszczenie bazy danych<a></p>';
+        readfile('view/index.html');
+        // echo '<p><a href="?action=ViewUserList">Lista użytkowników</a></p>';
     }
 
     public function DisplayUserList($userList)
@@ -39,13 +32,5 @@ class View
         } else {
             echo 'Brak BS';
         }
-    }
-
-    public function DisplayFreeSpaceLossForm() {
-        echo '<h1>Tłumienie w wolnej przestrzeni</h1>';
-        echo '<form action="?action=FreeSpaceLoss" method="POST">';
-        echo '<p>Odległość: <input type="text" name="distance" /> m</p>';
-        echo '<p>Częstotliwość: <input type="text" name="frequency" /> Hz</p>';
-        echo '<input type="submit" value="Oblicz" /></form></p>';
     }
 }
