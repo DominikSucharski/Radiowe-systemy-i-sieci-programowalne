@@ -19,24 +19,20 @@ function getCookie(name) {
   return null;
 }
 
-// function eraseCookie(name) {
-//   document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-// }
-
 const themeSwitcher = document.querySelector('.theme-toggle img');
 const allDocument = document.querySelector('html');
 
 if (getCookie('theme-cookie') === 'dark') {
-  themeSwitcher.src = '../src/images/sun.svg';
+  themeSwitcher.src = 'views/src/images/sun.svg';
   allDocument.classList.toggle('dark-theme');
 }
 
 themeSwitcher.addEventListener('mousedown', () => {
   if (allDocument.classList.contains('dark-theme')) {
-    themeSwitcher.src = './src/images/moon.svg';
+    themeSwitcher.src = 'views/src/images/moon.svg';
     setCookie('theme-cookie', 'light', 7);
   } else {
-    themeSwitcher.src = './src/images/sun.svg';
+    themeSwitcher.src = 'views/src/images/sun.svg';
     setCookie('theme-cookie', 'dark', 7);
   }
   allDocument.classList.toggle('dark-theme');
