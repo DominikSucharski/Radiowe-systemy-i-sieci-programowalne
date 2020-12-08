@@ -37,10 +37,9 @@ class DB
         return false;
     }
 
-    public function AddUser($power, $coord_x, $coord_y, $channel, $points)
+    public function AddUser($user_name, $power, $coord_x, $coord_y, $channel, $points)
     {
-        // TODO: select by $coord_x, $coord_y, $channel; update $power, $points if exist
-        $sql = "INSERT INTO users (user_ptx, user_coords_x, user_coords_y, user_channel, user_points) VALUES ({$power}, {$coord_x}, {$coord_y}, {$channel}, '{$points}')";
+        $sql = "INSERT INTO users (user_name, user_ptx, user_coords_x, user_coords_y, user_channel, user_points) VALUES ('{$user_name}', {$power}, {$coord_x}, {$coord_y}, {$channel}, '{$points}')";
         $this->instance->query($sql);
     }
 
@@ -49,5 +48,19 @@ class DB
         $sql = "DELETE FROM users WHERE user_id = {$id}";
         $this->instance->query($sql);
         return $this->instance->affected_rows;
+    }
+
+    public function GetSystemParams($withDescription = false) {
+        if($withDescription) {
+            $sql = "SELECT name, value, description FROM params";
+        }
+        else {
+            $sql = "SELECT name, value FROM params";
+        }
+        $paramsFromDb = $this->instance->query($sql);
+        if($paramsFromDb) {
+            return $paramsFromDb;
+        }
+        return false;
     }
 }

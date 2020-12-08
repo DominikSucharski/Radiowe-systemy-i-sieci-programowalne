@@ -58,6 +58,7 @@ class MainController
     {
         header('Content-type: application/json');
         if (!empty($_REQUEST['power']) && !empty($_REQUEST['coord_x']) && !empty($_REQUEST['coord_y']) && !empty($_REQUEST['channel'])) {
+            $user_name = $_REQUEST['user_name'] ?? '';
             $power = floatval($_REQUEST['power']);
             $coordX = intval($_REQUEST['coord_x']);
             $coordY = intval($_REQUEST['coord_y']);
@@ -66,6 +67,7 @@ class MainController
             if ($existingUser) {
                 $this->jsonResponse['response'] = 'user_exist';
             } else {
+                // zapisanie istniejacych uzytkowników w tablicy
                 $users = [];
                 $usersFromDb = $this->db->GetUsersForCalculation();
                 while ($row = $usersFromDb->fetch_array(MYSQLI_ASSOC)) {
@@ -75,7 +77,13 @@ class MainController
                     $row['channel'] = intval($row['channel']);
                     $users[] = $row;
                 }
-                $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users);
+                // zapisanie parametrow w tablicy
+                $params = [];
+                $paramsFromDb = $this->db->GetSystemParams();
+                while ($row = $paramsFromDb->fetch_array(MYSQLI_ASSOC)) {
+                    $params[] = $row;
+                }
+                $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users, $params);
                 if ($pythonResult === false) {
                     $this->jsonResponse['response'] = 'python_error';
                 } else if ($pythonResult == 'no_access') {
@@ -83,7 +91,7 @@ class MainController
                 } else {
                     $this->jsonResponse['response'] = $pythonResult;
                     $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
-                    $this->db->AddUser($power, $coordX, $coordY, $channel, $pythonResult);
+                    $this->db->AddUser($user_name, $power, $coordX, $coordY, $channel, $pythonResult);
                 }
             }
             $_POST = array();
@@ -104,10 +112,10 @@ class MainController
         }
     }
 
-    protected function callExternalPythonScript($coordX, $coordY, $power, $channel, $users = [])
+    protected function callExternalPythonScript($coordX, $coordY, $power, $channel, $users = [], $params = [])
     {
         $url = 'https://europe-west1-my-project-1567770564898.cloudfunctions.net/calculations';
-        $pythonRequest = array("coord_x" => $coordX, "coord_y" => $coordY, "power" => $power, "channel" => $channel, "users" => $users);
+        $pythonRequest = array("coord_x" => $coordX, "coord_y" => $coordY, "power" => $power, "channel" => $channel, "users" => $users, "params" => $params);
         $pythonRequest = json_encode($pythonRequest, true);
         $this->jsonResponse['request'] = $pythonRequest;
         $options = array(
@@ -119,5 +127,15 @@ class MainController
         );
         $context = stream_context_create($options);
         return file_get_contents($url, false, $context);
+    }
+
+    protected function actionGetSystemParams()
+    {
+        $params = [];
+        $paramsFromDb = $this->db->GetSystemParams();
+        while ($row = $paramsFromDb->fetch_array(MYSQLI_ASSOC)) {
+            $params[] = $row;
+        }
+        echo json_encode($params);
     }
 }
