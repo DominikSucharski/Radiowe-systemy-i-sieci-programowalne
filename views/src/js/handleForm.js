@@ -1,19 +1,27 @@
-let btsList;
-
 const form = document.querySelector('.form');
 const notification = document.querySelector('.card__header');
 const inputs = document.querySelectorAll('input');
 const submitButton = document.querySelector('button[type="submit"]');
 const btsTable = document.querySelector('.bts-list-body');
-// const usersRemoveButtons = document.querySelectorAll('.remove');
+const logoAnimation = document.querySelector('.radiation');
+
+function toggleInputs() {
+  inputs.forEach((input) => { input.disabled = !input.disabled; });
+  submitButton.toggleAttribute('disabled');
+}
+
+function displayNotification(color = 'info', text = '', blockInputs = false) {
+  notification.innerHTML = text;
+  notification.classList.remove('bg-danger', 'bg-info', 'bg-success');
+  notification.classList.add(`bg-${color}`, 'show');
+  if (blockInputs) toggleInputs();
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 3000);
+}
 
 function displayBtsList() {
-  const requestOptions = {
-    method: 'GET',
-    redirect: 'manual',
-  };
-
-  fetch('http://dominik.sucharski.student.put.poznan.pl/?action=GetUserList', requestOptions)
+  fetch('http://dominik.sucharski.student.put.poznan.pl/?action=GetUserList', { method: 'GET' })
     .then((response) => response.text())
     .then((result) => {
       if (result === 'no_users') {
@@ -25,7 +33,7 @@ function displayBtsList() {
         </tbody>
         `;
       } else {
-        btsList = JSON.parse(result);
+        const btsList = JSON.parse(result);
         btsTable.innerHTML = '';
         let htmlElement = '';
         btsList.forEach((el) => {
@@ -38,7 +46,7 @@ function displayBtsList() {
             <td class="align-middle">${el.user_ptx}</td>
             <td class="align-middle">${el.user_channel}</td>
             <td class="align-middle">${el.user_points}</td>
-            <td class="text-danger align-middle text-center"><span class="remove" data-index=${el.user_id}  title="Usuń użytkownika z listy">✕</span></td>
+            <td class="text-danger align-middle text-center"><span class="remove" data-index=${el.user_id}  title="Usuń użytkownika z listy">╳</span></td>
           </tr>
         </tbody>
           `;
@@ -49,30 +57,15 @@ function displayBtsList() {
 }
 
 function removeUser(e) {
-  if (!e.target.matches('.remove')) return; // skip this unless it's an remove button
-  const requestOptions = {
-    method: 'GET',
-    redirect: 'follow',
-  };
-
-  fetch(`http://dominik.sucharski.student.put.poznan.pl/?action=DeleteUser&id=${e.target.dataset.index}`, requestOptions)
+  if (!e.target.matches('.remove')) return; // skip everything unless it's an remove button
+  fetch(`http://dominik.sucharski.student.put.poznan.pl/?action=DeleteUser&id=${e.target.dataset.index}`, { method: 'GET' })
     .then((response) => response.text())
     .then((result) => {
       if (result === '1') {
-        notification.innerHTML = 'Usunięto użytkownika.';
-        notification.classList.remove('bg-danger', 'bg-info', 'bg-success');
-        notification.classList.add('bg-success', 'show');
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
+        displayNotification('success', 'Usunięto użytkownika.');
         displayBtsList();
       } else {
-        notification.innerHTML = 'Błąd podczas usuwania użytkownika!';
-        notification.classList.remove('bg-danger', 'bg-info', 'bg-success');
-        notification.classList.add('bg-danger', 'show');
-        setTimeout(() => {
-          notification.classList.remove('show');
-        }, 3000);
+        displayNotification('danger', 'Błąd podczas usuwania użytkownika!');
       }
     });
 }
@@ -80,36 +73,22 @@ function removeUser(e) {
 function handleResponse(result) {
   switch (result.response) {
     case 'python_error':
-      notification.innerHTML = 'Błąd obliczeń.';
-      notification.classList.remove('bg-info', 'bg-success');
-      notification.classList.add('bg-danger', 'show');
+      displayNotification('danger', 'Błąd obliczeń.', true);
       break;
     case 'no_access':
-      notification.innerHTML = 'Brak dostępu dla użytkownika.';
-      notification.classList.remove('bg-danger', 'bg-success');
-      notification.classList.add('bg-info', 'show');
+      displayNotification('info', 'Brak dostępu dla użytkownika.', true);
       break;
     case 'set_all_params':
-      notification.innerHTML = 'Nie ustawiono wszystkich parametrów lub są one błędne.';
-      notification.classList.remove('bg-danger', 'bg-success');
-      notification.classList.add('bg-info', 'show');
+      displayNotification('danger', 'Nie ustawiono wszystkich parametrów lub są one błędne.', true);
       break;
     case 'user_exist':
-      notification.innerHTML = 'Istnieje użytkownik o podanych parametrach.';
-      notification.classList.remove('bg-danger', 'bg-success');
-      notification.classList.add('bg-info', 'show');
+      displayNotification('info', 'Istnieje użytkownik o podanych parametrach.', true);
       break;
     default:
-      notification.innerHTML = 'Przyznano dostęp.';
-      notification.classList.remove('bg-danger', 'bg-info');
-      notification.classList.add('bg-success', 'show');
+      displayNotification('success', 'Przyznano dostęp.', true);
   }
   displayBtsList();
-  setTimeout(() => {
-    inputs.forEach((input) => { input.disabled = false; });
-    submitButton.toggleAttribute('disabled');
-    notification.classList.remove('show');
-  }, 2000);
+  logoAnimation.style.display = 'none';
 }
 
 function addBTS(latitude, longitude, power, channel) {
@@ -119,13 +98,7 @@ function addBTS(latitude, longitude, power, channel) {
   formdata.append('coord_y', longitude);
   formdata.append('channel', channel);
 
-  const requestOptions = {
-    method: 'POST',
-    body: formdata,
-    redirect: 'follow',
-  };
-
-  fetch('http://dominik.sucharski.student.put.poznan.pl?action=AddUser', requestOptions)
+  fetch('http://dominik.sucharski.student.put.poznan.pl?action=AddUser', { method: 'POST', body: formdata })
     .then((response) => response.text())
     .then((result) => {
       handleResponse(JSON.parse(result));
@@ -134,15 +107,15 @@ function addBTS(latitude, longitude, power, channel) {
 
 function handleData(e) {
   e.preventDefault();
-  inputs.forEach((input) => { input.disabled = true; });
-  submitButton.toggleAttribute('disabled');
+  toggleInputs();
+  logoAnimation.style.display = 'block';
+
   const latitude = this.querySelector('#latitude').value;
   const longitude = this.querySelector('#longitude').value;
   const power = this.querySelector('#power').value;
   const channel = this.querySelector('#channel').value;
 
   addBTS(latitude, longitude, power, channel);
-
   form.reset();
 }
 

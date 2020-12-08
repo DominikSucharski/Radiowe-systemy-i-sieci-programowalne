@@ -5,7 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">  -->
+  <link rel="apple-touch-icon" sizes="180x180" href="views/src/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="views/src/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="views/src/images/favicon/favicon-16x16.png">
+  <link rel="manifest" href="views/src/images/favicon/site.webmanifest">
+  <link rel="mask-icon" href="views/src/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
   <title>dynamic-spectrum-access</title>
   <script defer src="views/src/js/index.js"></script>
   <script defer src="views/src/js/handleForm.js"></script>
@@ -17,8 +23,14 @@
 <body>
 
   <nav class="navigation">
-    <span class="logo"><img src="views/src/images/icon.png" alt="dynamic-spectrum-access" height="30px"
-        width="auto">dynamic-spectrum-access</span>
+    <a class="logo" href="/">
+      <div class="logo__image">
+        <img src="views/src/images/icon.png" alt="dynamic-spectrum-access" height="30px" width="auto">
+        <div class="radiation" style="display: none;">
+        </div>
+      </div>
+      <h1>dynamic-spectrum-access</h1>
+    </a>
     <ul class="menu">
       <li class="menu__item"><a href="/">Strona Główna</a></li>
       <li class="menu__item"><a href="/">O projekcie</a></li>
@@ -36,11 +48,11 @@
           <form class="form">
             <div class="form__group">
               <label for="latitude">Szerokość geograficzna</label>
-              <input type="number" class="form-control" id="latitude" required>
+              <input type="number" step="0.01" class="form-control" id="latitude" required>
             </div>
             <div class="form__group">
               <label for="longitude">Długość geograficzna</label>
-              <input type="number" class="form-control" id="longitude" required>
+              <input type="number" step="0.01" class="form-control" id="longitude" required>
             </div>
             <div class="form__group">
               <label for="power">Moc nadajnika [dBm]</label>
@@ -68,7 +80,7 @@
               <th scope="col">Moc nadajnika [dBm]</th>
               <th scope="col">Kanał</th>
               <th scope="col">Rezultat obliczeń</th>
-              <th scope="col">Edytuj</th>
+              <th scope="col" class="text-center">Edytuj</th>
             </tr>
           </thead>
           <tbody class='bts-list-body'>
