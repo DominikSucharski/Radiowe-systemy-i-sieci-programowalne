@@ -1,20 +1,17 @@
 <?php
 require_once 'db.php';
 require_once 'view.php';
-require_once 'calculations.php';
 
 class MainController
 {
     protected $db;
     protected $view;
-    protected $calculations;
     protected $jsonResponse;
 
     public function __construct()
     {
         $this->db = new DB();
         $this->view = new View();
-        $this->calculations = new Calculations();
         $this->jsonResponse = [];
         $this->jsonResponse = ['response' => [], 'request' => []];
     }
