@@ -20,20 +20,37 @@ function getCookie(name) {
 }
 
 const themeSwitcher = document.querySelector('.theme-toggle img');
-const allDocument = document.querySelector('html');
+const wholeDocument = document.querySelector('html');
 
 if (getCookie('theme-cookie') === 'dark') {
   themeSwitcher.src = 'views/src/images/sun.svg';
-  allDocument.classList.toggle('dark-theme');
+  wholeDocument.classList.toggle('dark-theme');
 }
 
-themeSwitcher.addEventListener('mousedown', () => {
-  if (allDocument.classList.contains('dark-theme')) {
+themeSwitcher.addEventListener('click', () => {
+  if (wholeDocument.classList.contains('dark-theme')) {
     themeSwitcher.src = 'views/src/images/moon.svg';
     setCookie('theme-cookie', 'light', 7);
   } else {
     themeSwitcher.src = 'views/src/images/sun.svg';
     setCookie('theme-cookie', 'dark', 7);
   }
-  allDocument.classList.toggle('dark-theme');
+  wholeDocument.classList.toggle('dark-theme');
 });
+
+function getSystemParams() {
+  const paramsList = this.querySelector('#params ul');
+  fetch('http://dominik.sucharski.student.put.poznan.pl/?action=getSystemParams', { method: 'GET' })
+    .then((response) => response.text())
+    .then((result) => {
+      const params = JSON.parse(result);
+      params.forEach((element) => {
+        const param = document.createElement('li');
+        param.textContent = `${element.name}: ${element.value}`;
+        paramsList.appendChild(param);
+      });
+    })
+    .catch((error) => console.log('error', error));
+}
+
+document.addEventListener('DOMContentLoaded', getSystemParams);
