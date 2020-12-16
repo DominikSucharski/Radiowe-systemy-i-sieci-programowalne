@@ -23,16 +23,16 @@ const themeSwitcher = document.querySelector('.theme-toggle img');
 const wholeDocument = document.querySelector('html');
 
 if (getCookie('theme-cookie') === 'dark') {
-  themeSwitcher.src = './src/images/sun.svg';
+  themeSwitcher.src = 'views/src/images/sun.svg';
   wholeDocument.classList.toggle('dark-theme');
 }
 
 themeSwitcher.addEventListener('click', () => {
   if (wholeDocument.classList.contains('dark-theme')) {
-    themeSwitcher.src = './src/images/moon.svg';
+    themeSwitcher.src = 'views/src/images/moon.svg';
     setCookie('theme-cookie', 'light', 7);
   } else {
-    themeSwitcher.src = './src/images/sun.svg';
+    themeSwitcher.src = 'views/src/images/sun.svg';
     setCookie('theme-cookie', 'dark', 7);
   }
   wholeDocument.classList.toggle('dark-theme');
