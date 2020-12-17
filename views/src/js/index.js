@@ -37,20 +37,3 @@ themeSwitcher.addEventListener('click', () => {
   }
   wholeDocument.classList.toggle('dark-theme');
 });
-
-function getSystemParams() {
-  const paramsList = this.querySelector('#params ul');
-  fetch('http://dominik.sucharski.student.put.poznan.pl/?action=getSystemParams', { method: 'GET' })
-    .then((response) => response.text())
-    .then((result) => {
-      const params = JSON.parse(result);
-      params.forEach((element) => {
-        const param = document.createElement('li');
-        param.textContent = `${element.name}: ${element.value}`;
-        paramsList.appendChild(param);
-      });
-    })
-    .catch((error) => console.log('error', error));
-}
-
-document.addEventListener('DOMContentLoaded', getSystemParams);
