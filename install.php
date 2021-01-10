@@ -13,6 +13,8 @@ $sql1_1 = "CREATE TABLE `users` (
     `user_coords_y` double NOT NULL DEFAULT 0,
     `user_channel` tinyint(4) NOT NULL DEFAULT 0,
     `user_ptx` int(11) NOT NULL DEFAULT 0,
+    `aclr_1` int(11) NOT NULL DEFAULT 0,
+    `aclr_2` int(11) NOT NULL DEFAULT 0,
     `user_points` text NOT NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci";
 
@@ -39,7 +41,9 @@ $sql2_2 = "INSERT INTO `params` (`name`, `value`, `description`) VALUES
         ('bandwidth', 10000000, 'Szerokość pasma'),
         ('carrier_frequency', 2.5, 'Częstotliwość nośna'),
         ('matrix_length', 200, 'Długość siatki'),
-        ('points_spacing', 1, 'Odstęp między punktami')";
+        ('points_spacing', 1, 'Odstęp między punktami'),
+        ('power_reduction_step', 3, 'Krok zmniejszania mocy, aby umożliwić dostęp'),
+        ('min_power', 0, 'Minimalna moc do jakiej można zmniejszyć')";
 
 var_dump($mysqli->query($sql2_2));
 
