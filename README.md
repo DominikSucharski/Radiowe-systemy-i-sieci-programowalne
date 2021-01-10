@@ -27,14 +27,14 @@ API:
    * zwracane wartości:
       * python_error - błąd w wykonaniu skryptu napisanego w pythonie lub brak połączenia z serwerem na któym znajduje sie ten skrypt
       * no_access - użytkownik o podanych parametrach nie ma dostępu
-      * <tablica z wynikami> - użytkownik ma dostęp, został zwrócony wynik obliczeń
+      * [tablica z wynikami] - użytkownik ma dostęp, został zwrócony wynik obliczeń
     * przykładowe zapytanie (GET lub POST)
         * http://dominik.sucharski.student.put.poznan.pl/?action=AddUser&user_name=testowy&coord_x=20&coord_y=40&power=12&channel=5&aclr_1=40&aclr_2=60
             * user_name - nazwa użytkownika
             * coord_x - współrzędna x [km]
             * coord_y - współrzędna y [km]
             * power - moc [dBm]
-            * channel - numer kanału
+            * channel - numer kanału (1-10)
             * aclr_1 - ACLR [dB]
             * aclr_2 - ACLR [dB]
 * ?action=GetUserList - zwraca listę użytkowników w formacie JSON
