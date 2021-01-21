@@ -151,13 +151,15 @@ function handleResponse(result) {
   logoAnimation.style.display = 'none';
 }
 
-function addBTS(latitude, longitude, power, channel, username) {
+function addBTS(latitude, longitude, power, channel, username, aclr1, aclr2) {
   const formdata = new FormData();
   formdata.append('user_name', username);
   formdata.append('power', power);
   formdata.append('coord_x', latitude);
   formdata.append('coord_y', longitude);
   formdata.append('channel', channel);
+  formdata.append('aclr_1', aclr1);
+  formdata.append('aclr_2', aclr2);
   fetch('http://dominik.sucharski.student.put.poznan.pl?action=AddUser', { method: 'POST', body: formdata })
     .then((response) => response.text())
     .then((result) => {
@@ -175,8 +177,10 @@ function handleData(e) {
   const power = this.querySelector('#power').value;
   const channel = this.querySelector('#channel').value;
   const name = this.querySelector('#username').value;
+  const aclr1 = this.querySelector('#aclr-1').value;
+  const aclr2 = this.querySelector('#aclr-2').value;
 
-  addBTS(latitude, longitude, power, channel, name);
+  addBTS(latitude, longitude, power, channel, name, aclr1, aclr2);
   form.reset();
 }
 
