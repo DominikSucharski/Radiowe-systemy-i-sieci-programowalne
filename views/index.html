@@ -24,7 +24,7 @@
       sizes="16x16"
       href="views/src/images/favicon/favicon-16x16.png"
     />
-    <link rel="manifest" href="src/images/favicon/site.webmanifest" />
+    <link rel="manifest" href="views/src/images/favicon/site.webmanifest" />
     <link
       rel="mask-icon"
       href="views/src/images/favicon/safari-pinned-tab.svg"
@@ -42,12 +42,6 @@
       crossorigin="anonymous"
     />
     <link href="views/src/styles/index.css" rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-      crossorigin=""
-    />
   </head>
 
   <body>
@@ -66,8 +60,7 @@
       </a>
       <ul class="menu">
         <li class="menu__item"><a href="/">Strona Główna</a></li>
-        <li class="menu__item"><a href="/">O projekcie</a></li>
-        <li class="menu__item"><a href="/">Pomoc</a></li>
+        <li class="menu__item"><a href="https://github.com/DominikSucharski/Radiowe-systemy-i-sieci-programowalne/blob/main/README.md" target="_blank">O projekcie</a></li>
         <li class="menu__item">
           <span class="theme-toggle"
             ><img src="views/src/images/moon.svg" alt="Przełącz motyw strony"
@@ -92,7 +85,7 @@
                   />
                 </div>
                 <div class="form__group">
-                  <label for="latitude">Współrzędna X</label>
+                  <label for="latitude">Współrzędna X [km]</label>
                   <input
                     type="number"
                     step="0.01"
@@ -102,7 +95,7 @@
                   />
                 </div>
                 <div class="form__group">
-                  <label for="longitude">Współrzędna Y</label>
+                  <label for="longitude">Współrzędna Y [km]</label>
                   <input
                     type="number"
                     step="0.01"
@@ -135,6 +128,26 @@
                     <option value="10">10</option>
                   </select>
                 </div>
+                <div class="form__group">
+                  <label for="aclr-1">ACLR 1 [dB]</label>
+                  <input
+                    type="number"
+                    step="1"
+                    class="form-control"
+                    id="aclr-1"
+                    required
+                  />
+                </div>
+                <div class="form__group">
+                  <label for="aclr-2">ACLR 2 [dB]</label>
+                  <input
+                    type="number"
+                    step="1"
+                    class="form-control"
+                    id="aclr-2"
+                    required
+                  />
+                </div>
                 <div class="form__group text-center">
                   <button type="submit" class="btn btn-primary form__submit">
                     Dodaj
@@ -157,10 +170,12 @@
                   <tr>
                     <th scope="col">#</th>
                     <th scope="col">Nazwa</th>
-                    <th scope="col">Współrzędna X</th>
-                    <th scope="col">Współrzędna Y</th>
+                    <th scope="col">Współ. X [km]</th>
+                    <th scope="col">Współ. Y [km]</th>
                     <th scope="col">Moc nadajnika [dBm]</th>
                     <th scope="col">Kanał</th>
+                    <th scope="col">ACLR 1 [dB]</th>
+                    <th scope="col">ACLR 2 [dB]</th>
                     <th scope="col" class="text-center">Edytuj</th>
                   </tr>
                 </thead>

@@ -14,36 +14,53 @@ function drawChart(context, data) {
 
     // The data for our dataset
     data: {
-      datasets: [{
-        label: 'Użytkownik systemu',
-        backgroundColor: '#007bff',
-        borderColor: '#007bff',
-        data,
-      }],
+      datasets: [
+        {
+          label: 'Użytkownik systemu',
+          backgroundColor: '#007bff',
+          borderColor: '#007bff',
+          data,
+        },
+      ],
     },
 
     // Configuration options go here
     options: {
       scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: true,
-            max: 200,
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+              max: 200,
+            },
           },
-        }],
-        xAxes: [{
-          ticks: {
-            beginAtZero: true,
-            max: 200,
+        ],
+        xAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+              max: 200,
+            },
           },
-        }],
+        ],
+      },
+      tooltips: {
+        enabled: true,
+        mode: 'point',
+        callbacks: {
+          label(tooltipItem/* , data */) {
+            return `X: ${tooltipItem.yLabel}km, Y: ${tooltipItem.xLabel}km`;
+          },
+        },
       },
     },
   });
 }
 
 function toggleInputs() {
-  inputs.forEach((input) => { input.disabled = !input.disabled; });
+  inputs.forEach((input) => {
+    input.disabled = !input.disabled;
+  });
   submitButton.toggleAttribute('disabled');
   channelInput.toggleAttribute('disabled');
 }
@@ -86,10 +103,12 @@ function displayBtsList() {
             <td class="align-middle">${el.user_coords_y}</td>
             <td class="align-middle">${el.user_ptx}</td>
             <td class="align-middle">${el.user_channel}</td>
+            <td class="align-middle">${el.aclr_1}</td>
+            <td class="align-middle">${el.aclr_2}</td>
             <td class="text-danger align-middle text-center"><span class="remove" data-index=${el.user_id}  title="Usuń użytkownika z listy">╳</span></td>
           </tr>
         </tbody>`;
-          chartData.push({ x: el.user_coords_x, y: el.user_coords_y, r: 20 });
+          chartData.push({ x: el.user_coords_x, y: el.user_coords_y, r: 5 });
         });
         btsTable.innerHTML = htmlElement;
         drawChart(ctx, chartData);
@@ -132,13 +151,15 @@ function handleResponse(result) {
   logoAnimation.style.display = 'none';
 }
 
-function addBTS(latitude, longitude, power, channel, username) {
+function addBTS(latitude, longitude, power, channel, username, aclr1, aclr2) {
   const formdata = new FormData();
   formdata.append('user_name', username);
   formdata.append('power', power);
   formdata.append('coord_x', latitude);
   formdata.append('coord_y', longitude);
   formdata.append('channel', channel);
+  formdata.append('aclr_1', aclr1);
+  formdata.append('aclr_2', aclr2);
   fetch('http://dominik.sucharski.student.put.poznan.pl?action=AddUser', { method: 'POST', body: formdata })
     .then((response) => response.text())
     .then((result) => {
@@ -156,8 +177,10 @@ function handleData(e) {
   const power = this.querySelector('#power').value;
   const channel = this.querySelector('#channel').value;
   const name = this.querySelector('#username').value;
+  const aclr1 = this.querySelector('#aclr-1').value;
+  const aclr2 = this.querySelector('#aclr-2').value;
 
-  addBTS(latitude, longitude, power, channel, name);
+  addBTS(latitude, longitude, power, channel, name, aclr1, aclr2);
   form.reset();
 }
 
