@@ -17,14 +17,13 @@ function drawChart(context, data) {
       datasets: [
         {
           label: 'Użytkownik systemu',
-          backgroundColor: '#007bff',
-          borderColor: '#007bff',
+          backgroundColor: '#007bff80',
           data,
         },
       ],
     },
 
-    // Configuration options go here
+    // Configuration options
     options: {
       scales: {
         yAxes: [
@@ -32,6 +31,10 @@ function drawChart(context, data) {
             ticks: {
               beginAtZero: true,
               max: 200,
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 'Współrzędne Y [km]',
             },
           },
         ],
@@ -41,6 +44,10 @@ function drawChart(context, data) {
               beginAtZero: true,
               max: 200,
             },
+            scaleLabel: {
+              display: true,
+              labelString: 'Współrzędne X [km]',
+            },
           },
         ],
       },
@@ -48,8 +55,8 @@ function drawChart(context, data) {
         enabled: true,
         mode: 'point',
         callbacks: {
-          label(tooltipItem/* , data */) {
-            return `X: ${tooltipItem.yLabel}km, Y: ${tooltipItem.xLabel}km`;
+          label(tooltipItem) {
+            return ` X: ${tooltipItem.xLabel}km | Y: ${tooltipItem.yLabel}km}`;
           },
         },
       },
@@ -83,7 +90,7 @@ function displayBtsList() {
         btsTable.innerHTML = `
         <tbody class='bts-list-body'>
           <tr>
-            <td colspan="7" class="text-center" >Brak użytkowników w systemie.</td>
+            <td colspan="0" class="text-center" >Brak użytkowników w systemie.</td>
           </tr>
         </tbody>
         `;
@@ -108,7 +115,7 @@ function displayBtsList() {
             <td class="text-danger align-middle text-center"><span class="remove" data-index=${el.user_id}  title="Usuń użytkownika z listy">╳</span></td>
           </tr>
         </tbody>`;
-          chartData.push({ x: el.user_coords_x, y: el.user_coords_y, r: 5 });
+          chartData.push({ x: el.user_coords_x, y: el.user_coords_y, r: 10 });
         });
         btsTable.innerHTML = htmlElement;
         drawChart(ctx, chartData);
@@ -192,7 +199,7 @@ function displaySystemParams() {
       const params = JSON.parse(result);
       params.forEach((element) => {
         const param = document.createElement('li');
-        param.innerHTML = `${element.name}:&nbsp;<strong>${element.value}</strong>`;
+        param.innerHTML = `${element.description}:&nbsp;<strong>${element.value}</strong>`;
         paramsList.appendChild(param);
       });
     });

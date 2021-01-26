@@ -25,21 +25,23 @@ class DB
 
     public function GetUsersForCalculation()
     {
-        return $this->instance->query("SELECT user_coords_x coord_x, user_coords_y coord_y, user_channel channel, user_ptx power, user_points points FROM users");
+        return $this->instance->query("SELECT user_coords_x coord_x, user_coords_y coord_y, user_channel channel, user_ptx power, aclr_1, aclr_2, user_points points FROM users");
     }
 
     public function FindUserByParams($coord_x, $coord_y, $channel)
     {
         $userFromDb = $this->instance->query("SELECT user_id, user_ptx power, user_points points FROM users WHERE user_coords_x = {$coord_x} AND user_coords_y = {$coord_y} AND user_channel = {$channel} LIMIT 1");
-        if($userFromDb) {
+        if ($userFromDb) {
             return $userFromDb->fetch_array(MYSQLI_ASSOC);
         }
         return false;
     }
 
-    public function AddUser($user_name, $power, $coord_x, $coord_y, $channel, $points)
+    public function AddUser($user_name, $power, $coord_x, $coord_y, $channel, $points, $aclr1, $aclr2)
     {
-        $sql = "INSERT INTO users (user_name, user_ptx, user_coords_x, user_coords_y, user_channel, user_points) VALUES ('{$user_name}', {$power}, {$coord_x}, {$coord_y}, {$channel}, '{$points}')";
+        $sql = "INSERT INTO users
+                (user_name, user_ptx, user_coords_x, user_coords_y, user_channel, user_points, aclr_1, aclr_2)
+                VALUES ('{$user_name}', {$power}, {$coord_x}, {$coord_y}, {$channel}, '{$points}', {$aclr1}, {$aclr2})";
         $this->instance->query($sql);
     }
 
@@ -50,15 +52,15 @@ class DB
         return $this->instance->affected_rows;
     }
 
-    public function GetSystemParams($withDescription = false) {
-        if($withDescription) {
+    public function GetSystemParams($withDescription = false)
+    {
+        if ($withDescription) {
             $sql = "SELECT name, value, description FROM params";
-        }
-        else {
+        } else {
             $sql = "SELECT name, value FROM params";
         }
         $paramsFromDb = $this->instance->query($sql);
-        if($paramsFromDb) {
+        if ($paramsFromDb) {
             return $paramsFromDb;
         }
         return false;

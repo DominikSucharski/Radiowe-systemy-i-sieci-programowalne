@@ -54,12 +54,14 @@ class MainController
     protected function actionAddUser()
     {
         header('Content-type: application/json');
-        if (!empty($_REQUEST['power']) && !empty($_REQUEST['coord_x']) && !empty($_REQUEST['coord_y']) && !empty($_REQUEST['channel'])) {
+        if (isset($_REQUEST['power']) && isset($_REQUEST['coord_x']) && isset($_REQUEST['coord_y']) && !empty($_REQUEST['channel'])) {
             $user_name = $_REQUEST['user_name'] ?? '';
             $power = floatval($_REQUEST['power']);
             $coordX = intval($_REQUEST['coord_x']);
             $coordY = intval($_REQUEST['coord_y']);
             $channel = floatval($_REQUEST['channel']);
+            $aclr1 = intval($_REQUEST['aclr_1']);
+            $aclr2 = intval($_REQUEST['aclr_2']);
             $existingUser = $this->db->FindUserByParams($coordX, $coordY, $channel);
             if ($existingUser) {
                 $this->jsonResponse['response'] = 'user_exist';
@@ -72,6 +74,8 @@ class MainController
                     $row['coord_y'] = floatval($row['coord_y']);
                     $row['power'] = intval($row['power']);
                     $row['channel'] = intval($row['channel']);
+                    $row['aclr_1'] = intval($row['aclr_1']);
+                    $row['aclr_2'] = intval($row['aclr_2']);
                     $users[] = $row;
                 }
                 // zapisanie parametrow w tablicy
@@ -79,17 +83,59 @@ class MainController
                 $paramsFromDb = $this->db->GetSystemParams();
                 while ($row = $paramsFromDb->fetch_array(MYSQLI_ASSOC)) {
                     $params[] = $row;
+                    $paramsByName[$row['name']] = $row['value'];
                 }
-                $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $users, $params);
-                if ($pythonResult === false) {
-                    $this->jsonResponse['response'] = 'python_error';
-                } else if ($pythonResult == 'no_access') {
-                    $this->jsonResponse['response'] = 'no_access';
-                } else {
-                    $this->jsonResponse['response'] = $pythonResult;
-                    $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
-                    $this->db->AddUser($user_name, $power, $coordX, $coordY, $channel, $pythonResult);
-                }
+
+                // maksymalna liczba prób
+                $tryLimit = 10;
+                $initialPower = $power;
+                $initialChannel = $channel;
+                // naprzemienne zwiększanie i zmniejszanie kanału np. 5 -> 6 -> 4 -> 7 -> 3
+                $recentlyIncreasedChannel = false;
+                // odległość od początkowego kanału
+                $channelDifference = 0;
+                // max i min kanał
+                $maxChannel = 10;
+                $minChannel = 1;
+
+                do {
+                    $tryLimit--;
+
+                    $pythonResult = $this->callExternalPythonScript($coordX, $coordY, $power, $channel, $aclr1, $aclr2, $users, $params);
+                    if ($pythonResult === false) {
+                        $this->jsonResponse['response'] = 'python_error';
+                        break;
+                    } else if ($pythonResult == 'no_access') {
+                        $this->jsonResponse['response'] = 'no_access';
+                    } else {
+                        $this->jsonResponse['response'] = $pythonResult;
+                        $pythonResult = $this->db->GetInstance()->real_escape_string($pythonResult);
+                        $this->db->AddUser($user_name, $power, $coordX, $coordY, $channel, $pythonResult, $aclr1, $aclr2);
+                        break;
+                    }
+
+                    // najpierw zmniejszanie mocy
+                    $power -= $paramsByName['power_reduction_step'];
+
+                    // później próba zmiany kanału
+                    if ($power < $paramsByName['min_power']) {
+                        $power = $initialPower;
+                        if ($recentlyIncreasedChannel) {
+                            // zmniejszeie numeru kanału
+                            $channel = $initialChannel - $channelDifference;
+                            $recentlyIncreasedChannel = false;
+                        } else {
+                            // zwiększenie numeru kanału
+                            $channel = ++$channelDifference + $initialChannel;
+                            $recentlyIncreasedChannel = true;
+                        }
+                        if ($channel < $minChannel) {
+                            $channel = ++$channelDifference + $initialChannel;
+                        } elseif ($channel > $maxChannel) {
+                            $channel = $initialChannel - $channelDifference;
+                        }
+                    }
+                } while ($tryLimit > 0);
             }
             $_POST = array();
             $_REQUEST = array();
@@ -109,10 +155,19 @@ class MainController
         }
     }
 
-    protected function callExternalPythonScript($coordX, $coordY, $power, $channel, $users = [], $params = [])
+    protected function callExternalPythonScript($coordX, $coordY, $power, $channel, $aclr1, $aclr2, $users = [], $params = [])
     {
         $url = 'https://europe-west1-my-project-1567770564898.cloudfunctions.net/calculations';
-        $pythonRequest = array("coord_x" => $coordX, "coord_y" => $coordY, "power" => $power, "channel" => $channel, "users" => $users, "params" => $params);
+        $pythonRequest = array(
+            "coord_x" => $coordX,
+            "coord_y" => $coordY,
+            "power" => $power,
+            "channel" => $channel,
+            "aclr_1" => $aclr1,
+            "aclr_2" => $aclr2,
+            "users" => $users,
+            "params" => $params,
+        );
         $pythonRequest = json_encode($pythonRequest, true);
         $this->jsonResponse['request'] = $pythonRequest;
         $options = array(
@@ -129,7 +184,7 @@ class MainController
     protected function actionGetSystemParams()
     {
         $params = [];
-        $paramsFromDb = $this->db->GetSystemParams();
+        $paramsFromDb = $this->db->GetSystemParams(true);
         while ($row = $paramsFromDb->fetch_array(MYSQLI_ASSOC)) {
             $params[] = $row;
         }

@@ -42,8 +42,8 @@ $sql2_2 = "INSERT INTO `params` (`name`, `value`, `description`) VALUES
         ('carrier_frequency', 2.5, 'Częstotliwość nośna'),
         ('matrix_length', 200, 'Długość siatki'),
         ('points_spacing', 1, 'Odstęp między punktami'),
-        ('power_reduction_step', 3, 'Krok zmniejszania mocy, aby umożliwić dostęp'),
-        ('min_power', 0, 'Minimalna moc do jakiej można zmniejszyć')";
+        ('power_reduction_step', 3, 'Algorytm - krok zmniejszania mocy'),
+        ('min_power', 0, 'Algorytm - minimalna moc')";
 
 var_dump($mysqli->query($sql2_2));
 

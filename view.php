@@ -4,7 +4,7 @@ class View
 {
     public function MainView()
     {
-        readfile('view/index.html');
+        readfile('views/index.html');
         // echo '<p><a href="?action=ViewUserList">Lista użytkowników</a></p>';
     }
 
