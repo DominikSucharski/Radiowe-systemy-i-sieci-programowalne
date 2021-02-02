@@ -16,7 +16,7 @@ from math import *
 class Calculation():
 
     def __init__(self, coords_user, matrix, list_of_trensmitters, transmitting_power, channel, bandwidth,
-                 carrier_frequency):
+                 carrier_frequency, aclr_1, aclr_2):
         self.channel = channel
         self.transmitting_power = transmitting_power
         self.matrix = matrix
@@ -24,6 +24,9 @@ class Calculation():
         self.points = None
         self.bandwidth = bandwidth
         self.carrier_frequency = carrier_frequency
+        self.aclr_1 = aclr_1
+        self.aclr_2 = aclr_2
+        self.noise_transmitter = self.thermal_noise_power()
         # print("list transmitters: ", list_of_trensmitters)
         # print("coord x user:" , coords_user)
         for transmitter in list_of_trensmitters:
@@ -111,7 +114,8 @@ class Calculation():
 
     def check_sinr_for_points_other_transmitters(self, coords_transmitter, list_of_trensmitters):
         for transmitter in list_of_trensmitters:
-            other_transmitters = list_of_trensmitters.copy().remove(transmitter)
+            other_transmitters = list_of_trensmitters.copy()
+            other_transmitters.remove(transmitter)
             for transmitter_point in transmitter["points"]:
                 interference = 0
                 if other_transmitters:
@@ -122,63 +126,55 @@ class Calculation():
                             fsl_dB_other_transmitter = self.free_space_loss(distance)
                             transmitter_power = other_transmitter['power']
                             if other_transmitter['channel'] != transmitter['channel']:
-                                if other_transmitter['channel'] == transmitter['channel'] + 1 or other_transmitter['channel'] == \
-                                        transmitter['channel'] - 1:
-                                    transmitter_power -= 40
-                                elif other_transmitter['channel'] == transmitter['channel'] + 2 or other_transmitter[
-                                    'channel'] == transmitter['channel'] - 2:
-                                    transmitter_power -= 60
-                                # else:
-                                # transmitter_power = 0
-                            PRX_dBm_other_transmitter = transmitter_power - fsl_dB_other_transmitter
-                            PRX_mW = self.dBm_to_mW(PRX_dBm_other_transmitter)
-                            interference = interference + PRX_mW
+                                if other_transmitter['channel'] == transmitter['channel'] + 1 or other_transmitter['channel'] == transmitter['channel'] - 1:
+                                    transmitter_power -= other_transmitter["aclr_1"]
+                                    PRX_dBm_other_transmitter = transmitter_power - fsl_dB_other_transmitter
+                                    PRX_mW = self.dBm_to_mW(PRX_dBm_other_transmitter)
+                                    interference = interference + PRX_mW
 
-                noise_transmitter = self.thermal_noise_power()
+                                if other_transmitter['channel'] == transmitter['channel'] + 2 or other_transmitter['channel'] == transmitter['channel'] - 2:
+                                    transmitter_power -= other_transmitter["aclr_2"]
+                                    PRX_dBm_other_transmitter = transmitter_power - fsl_dB_other_transmitter
+                                    PRX_mW = self.dBm_to_mW(PRX_dBm_other_transmitter)
+                                    interference = interference + PRX_mW
+                                else:
+                                    interference = interference
+                            else:
+                                PRX_dBm_other_transmitter = transmitter_power - fsl_dB_other_transmitter
+                                PRX_mW = self.dBm_to_mW(PRX_dBm_other_transmitter)
+                                interference = interference + PRX_mW
+
                 distance_new_transmitter = self.calculateDistance(coords_transmitter, transmitter_point)
-                fsl_dB_new_transmitter = self.free_space_loss(distance_new_transmitter)
-                transmitter_power = self.transmitting_power
-                if self.channel != transmitter['channel']:
-                    if self.channel == transmitter['channel'] + 1 or self.channel == transmitter['channel'] - 1:
-                        transmitter_power -= 40
-                    elif self.channel == transmitter['channel'] + 2 or self.channel == transmitter['channel'] - 2:
-                        transmitter_power -= 60
-                    # else:
-                    #     transmitter_power = float('-inf')
-                # PRX_dBm_new_transmitter = self.transmitting_power - fsl_dB_new_transmitter
-                PRX_dBm_new_transmitter = transmitter_power - fsl_dB_new_transmitter
-                PRX_new_mW = self.dBm_to_mW(PRX_dBm_new_transmitter)
-                interference = interference + PRX_new_mW
-                interference = self.mW_to_dBm(interference)
-                distance_transmitter = self.calculateDistance((transmitter['coord_x'], transmitter['coord_y']),
-                                                              transmitter_point)
-                fsl_dB_transmitter = self.free_space_loss(distance_transmitter)
-                sinr = self.SINR(transmitter["power"] - fsl_dB_transmitter, noise_transmitter, interference)
-                if sinr < 6:
-                    print("SINR = ", sinr, "point: ", transmitter_point, " SINR < 6 dB, request rejected!!!")
-                    return False
+                if distance_new_transmitter != 0:
+                    fsl_dB_new_transmitter = self.free_space_loss(distance_new_transmitter)
+                    transmitter_power = self.transmitting_power
+                    if self.channel != transmitter['channel']:
+                        if self.channel == transmitter['channel'] + 1 or self.channel == transmitter['channel'] - 1:
+                            transmitter_power -= self.aclr_1
+                            PRX_dBm_new_transmitter = transmitter_power - fsl_dB_new_transmitter
+                            PRX_mW = self.dBm_to_mW(PRX_dBm_new_transmitter)
+                            interference = interference + PRX_mW
+                        if self.channel == transmitter['channel'] + 2 or self.channel == transmitter['channel'] - 2:
+                            transmitter_power -= self.aclr_2
+                            PRX_dBm_new_transmitter = transmitter_power - fsl_dB_new_transmitter
+                            PRX_mW = self.dBm_to_mW(PRX_dBm_new_transmitter)
+                            interference = interference + PRX_mW
+                        else:
+                            interference = interference
+                    else:
+                        PRX_dBm_new_transmitter = transmitter_power - fsl_dB_new_transmitter
+                        PRX_mW = self.dBm_to_mW(PRX_dBm_new_transmitter)
+                        interference = interference + PRX_mW
+                    distance_transmitter = self.calculateDistance((transmitter['coord_x'], transmitter['coord_y']),
+                                                                  transmitter_point)
+                    fsl_dB_transmitter = self.free_space_loss(distance_transmitter)
 
-
+                    sinr = self.SINR(transmitter["power"] - fsl_dB_transmitter, self.noise_transmitter, interference)
+                    if sinr < 6:
+                        print("SINR = ", sinr, "point: ", transmitter_point, " SINR < 6 dB, request rejected!!!")
+                        return False
         return True
 
-
-    def calculate_power_with_aclr(self, transmitter, list_of_transmitters, channel, PTX):
-        if transmitter:
-            list_other_transmitters = list_of_transmitters.copy().remove(transmitter)
-        else:
-            list_other_transmitters = list_of_transmitters.copy()
-        if not list_other_transmitters:
-            return PTX
-        for other_transmitter in list_other_transmitters:
-            if other_transmitter['channel'] == channel:
-                PTX = PTX
-            if other_transmitter['channel'] == channel + 1 or other_transmitter['channel'] == channel - 1:
-                PTX = PTX - 40
-            elif other_transmitter['channel'] == channel + 2 or other_transmitter['channel'] == channel - 2:
-                PTX = PTX - 60
-            else:
-                PTX = 0
-        return PTX
 
 
     def dBm_to_mW(self, value_dBm):
@@ -203,7 +199,7 @@ class Calculation():
     def SINR(self, power, thermal_noise_power_dBm, interference):
         # print("power: ", power, " thermal noise: ", thermal_noise_power_dBm, " interference: ", interference)
         thermal_noise_power_mW = self.dBm_to_mW(thermal_noise_power_dBm)
-        interference = self.dBm_to_mW(interference)
+        # interference = self.dBm_to_mW(interference)
         interference_plus_noise = thermal_noise_power_mW + interference
         interference_plus_noise = self.mW_to_dBm(interference_plus_noise)
         # print("thermal_noise_power_mW: ",thermal_noise_power_mW, "interference: ", interference)
@@ -229,6 +225,8 @@ def main(request):
             coord_y = request_json['coord_y']
             channel = request_json['channel']
             power = request_json['power']
+            aclr_1 = request_json['aclr_1']
+            aclr_2 = request_json['aclr_2']
             list_of_transmitters = request_json['users']
             params = request_json['params']
             for param in params:
@@ -239,12 +237,12 @@ def main(request):
                 if param['name'] == 'matrix_length':
                     matrix_length = int(param['value'])
                 if param['name'] == 'points_spacing':
-                    points_spacing = int(param['value'])
+                    points_spacing = float(param['value'])
 
     matrix = list(
         itertools.product(np.arange(0, matrix_length, points_spacing), np.arange(0, matrix_length, points_spacing)))
     point_with_snr = []
-    calculation = Calculation((coord_x, coord_y),matrix, list_of_transmitters, power, channel, bandwidth, carrier_frequency)
+    calculation = Calculation((coord_x, coord_y),matrix, list_of_transmitters, power, channel, bandwidth, carrier_frequency, aclr_1, aclr_2)
     accept, points = calculation.is_accept()
     if accept:
         return str(points)
